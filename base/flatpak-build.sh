@@ -1,4 +1,18 @@
-#!/bin/bash
+#!/bin/bash -eu
+
+echo "deb-src http://httpredir.debian.org/debian stretch main" >> /etc/apt/sources.list
+
+apt-get update -qq
+apt-get install -qq -y --no-install-recommends \
+        flatpak \
+        git-core \
+        locales \
+        make \
+        aptitude \
+        bzip2
+
+locale-gen C.UTF-8
+/usr/sbin/update-locale LANG=C.UTF-8
 
 apt-get build-dep -qq -y --no-install-recommends \
         ostree \
@@ -76,11 +90,18 @@ apt-get remove -y --purge \
         python3.5-minimal \
         sgml-base \
         sgml-data \
+        systemd \
         xml-core \
         xmlto \
         xorg-sgml-doctools \
         xsltproc
 
-apt autoremove -y
+aptitude purge -y $(aptitude search '~c' | awk '{ print $2 }')
+apt-get remove --purge -y aptitude
+apt-get autoremove -y
 
-rm -rf /usr/share/doc/* /usr/share/man/*
+rm -rf /usr/share/doc/* \
+       /usr/share/man/* \
+       /var/lib/apt/lists/*
+
+flatpak remote-add --if-not-exists gnome https://sdk.gnome.org/gnome.flatpakrepo
